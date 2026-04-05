@@ -174,9 +174,29 @@ def build_result_dataframe(zeus_df: pd.DataFrame, keytrak_df: pd.DataFrame) -> p
 
     zeus_stock_set = set(zeus_df[zeus_stock_col].tolist())
     result_df = keytrak_df[~keytrak_df[keytrak_stock_col].isin(zeus_stock_set)].copy()
-    result_df.insert(0, "Status", "In KeyTrak, not in Zeus (likely sold/stale)")
-    result_df.insert(1, "Normalized Stock #", result_df[keytrak_stock_col])
-    result_df = result_df.sort_values(by=[keytrak_stock_col], kind="stable").reset_index(drop=True)
+
+    if "Stock #" not in result_df.columns:
+        result_df["Stock #"] = result_df[keytrak_stock_col]
+
+    result_df["Status"] = "Likely sold/stale"
+
+    desired_order = [
+        "Stock #",
+        "Stock Type",
+        "Year",
+        "Make",
+        "Model",
+        "Exterior Color",
+        "Status",
+        "Keytag ID",
+    ]
+
+    existing_order = [col for col in desired_order if col in result_df.columns]
+    remaining_cols = [col for col in result_df.columns if col not in existing_order]
+    result_df = result_df[existing_order + remaining_cols]
+
+    sort_col = "Stock #" if "Stock #" in result_df.columns else keytrak_stock_col
+    result_df = result_df.sort_values(by=[sort_col], kind="stable").reset_index(drop=True)
 
     logger.info(
         "Compare complete. Zeus rows=%s | KeyTrak rows=%s | Result rows=%s",
