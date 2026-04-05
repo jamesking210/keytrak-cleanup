@@ -1,223 +1,94 @@
 # KeyTrak Cleanup
 
-A lightweight Docker-friendly web app that compares **KeyTrak inventory against Zeus inventory**.
+A simple self-hosted web app for comparing **Zeus inventory** against **KeyTrak inventory**.
 
-This tool is built for a simple monthly workflow:
-- upload the current **Zeus** CSV
-- upload the current **KeyTrak** CSV
-- treat **Zeus as the truth source**
-- remove Zeus in-stock units from the KeyTrak list
-- download the leftover KeyTrak rows as a cleanup CSV
-- email yourself a copy automatically
-- clean up uploaded files after the run
+The goal is to identify units that are still in **KeyTrak** but are **no longer in Zeus**.
 
----
-
-## Business logic
-
-This app is intentionally **one-way**:
+Since **Zeus is the truth source**, the output is:
 
 **KeyTrak - Zeus**
 
-Meaning:
-- stock numbers found in both files are ignored
-- stock numbers found only in Zeus are ignored for this report
-- stock numbers found only in KeyTrak are returned as the cleanup list
-
-Those leftover KeyTrak rows are treated as **likely sold or stale units still sitting in KeyTrak**.
+That leftover list is your cleanup list of likely **sold** or **stale** units still sitting in KeyTrak.
 
 ---
 
-## Expected file formats
+## What it does
 
-### Zeus CSV
-- Example filename: `Inv_Mgrs.csv`
-- Stock number is read from **column 2**
+- Clean upload page for two CSV files
+- Compares:
+  - **Zeus CSV** = truth source
+  - **KeyTrak CSV** = inventory to clean up
+- Removes all in-stock Zeus stock numbers from the KeyTrak list
+- Shows processing status on the webpage
+- Shows errors on the webpage if something fails
+- Generates a downloadable CSV result
+- Emails a copy of the result CSV
+- Deletes uploaded source files after successful processing
+- Cleans up temporary task files after completion
+- Writes persistent logs for processing, downloads, cleanup, and email activity
 
-### KeyTrak CSV
-- Example filename: `Lombard Toyota_Current Inventory_04-02-2026_15-33_PM.csv`
-- Stock number is read from **column 1**
-- The first **2 lines are skipped automatically** because the export starts with a title row and a blank row
+---
+
+## Truth logic
+
+This project does **not** do a two-way difference report.
+
+It does this only:
+
+**KeyTrak minus Zeus**
+
+That means:
+
+- **In both Zeus and KeyTrak** = ignore
+- **In Zeus but not KeyTrak** = ignored for this report
+- **In KeyTrak but not Zeus** = output list
+
+That output list represents vehicles that are likely:
+
+- sold
+- stale
+- or otherwise should no longer be sitting in KeyTrak
+
+---
+
+## Expected CSV formats
+
+### Zeus inventory
+Example file: `Inv_Mgrs.csv`
+
+- Uses the standard header row
+- **Stock number is column 2**
+
+### KeyTrak inventory
+Example file: `Lombard Toyota_Current Inventory_04-02-2026_15-33_PM.csv`
+
+- Has a title row and blank row before the real header
+- The app automatically skips the first 2 rows
+- **Stock number is column 1**
 
 ---
 
 ## Features
 
-- Clean single-page upload interface
-- Status updates shown live on the webpage
-- Error messages shown on the webpage
-- Downloadable result CSV
-- Result email with CSV attachment
-- Uploaded source files deleted after processing
-- Old temp/result files cleaned up automatically
-- Docker-ready and easy to move between hosts
+- Portable Docker deployment
+- Works well on:
+  - Proxmox
+  - TrueNAS
+  - Debian/Ubuntu Docker host
+- Persistent application log file
+- No sensitive data stored in the public repo
+- `.env` stays local on your host
+- Temporary uploads/results stored in local mounted folders
 
 ---
 
-## Repo safety
+## Default port
 
-This repo is safe to keep public **as long as you do not upload real data or secrets**.
+This app runs on:
 
-Do **not** commit:
-- `.env`
-- real SMTP credentials
-- dealership CSV exports
-- generated result CSVs
-- logs or temp files
+**8088**
 
-This repo already includes a `.gitignore` to help prevent that.
-
----
-
-## Quick start
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/jamesking210/keytrak-cleanup.git
-cd keytrak-cleanup
-```
-
-### 2. Create your env file
-
-```bash
-cp .env.example .env
-nano .env
-```
-
-Fill in your real SMTP settings in `.env`.
-
-### 3. Build and start the app
-
-```bash
-docker compose up -d --build
-```
-
-### 4. Open it in your browser
+Open it in your browser at:
 
 ```text
-http://YOUR-HOST-IP:8000
-```
-
----
-
-## Environment variables
-
-See `.env.example` for the full list.
-
-### App settings
-
-```env
-APP_TITLE=KeyTrak Cleanup
-APP_SUBTITLE=Upload Zeus and KeyTrak inventory files, compare them, download the cleanup list, and email yourself a copy.
-RESULT_RETENTION_MINUTES=30
-MAX_CONTENT_LENGTH_MB=20
-```
-
-### SMTP settings
-
-```env
-SMTP_ENABLED=true
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USERNAME=your_username
-SMTP_PASSWORD=your_password
-SMTP_USE_TLS=true
-SMTP_USE_SSL=false
-SMTP_FROM=you@example.com
-SMTP_TO=you@example.com
-```
-
-If you use SSL on port 465 instead:
-
-```env
-SMTP_PORT=465
-SMTP_USE_TLS=false
-SMTP_USE_SSL=true
-```
-
----
-
-## Running commands
-
-### Start
-
-```bash
-docker compose up -d --build
-```
-
-### Stop
-
-```bash
-docker compose down
-```
-
-### View logs
-
-```bash
-docker compose logs -f
-```
-
-### Rebuild after updates
-
-```bash
-git pull
-docker compose up -d --build
-```
-
----
-
-## Hosting ideas
-
-### Proxmox
-- great in a small Debian LXC or VM
-- simple internal tool for dealership use
-
-### TrueNAS
-- works as a custom app or Docker/Compose deployment
-- keep `.env` and `tmp` on persistent storage
-
-### Why it is portable
-- no database required for the MVP
-- no external dependencies beyond SMTP
-- local temp files only
-- same codebase should run anywhere Docker runs
-
----
-
-## File layout
-
-```text
-keytrak-cleanup/
-├── .dockerignore
-├── .env.example
-├── .gitignore
-├── app.py
-├── docker-compose.yml
-├── Dockerfile
-├── README.md
-├── requirements.txt
-└── templates/
-    └── index.html
-```
-
----
-
-## Future ideas
-
-- basic login/auth
-- save run history with SQLite
-- multiple email recipients
-- scheduled monthly processing
-- upload validation improvements
-- KeyTrak API integration
-- direct pull from a network share
-- optional second report for `Zeus - KeyTrak`
-
----
-
-## Notes
-
-This project is intentionally simple for the first version.
-
-The goal is to make the monthly KeyTrak cleanup easy, repeatable, and portable without overbuilding it.
+http://YOUR-HOST-IP:8088
