@@ -1,0 +1,11 @@
+services:
+  keytrak-cleanup:
+    build: .
+    container_name: keytrak-cleanup
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./tmp:/app/tmp
+    restart: unless-stopped
