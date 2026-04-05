@@ -42,7 +42,7 @@
     }
 
     .hero {
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .badge {
@@ -72,19 +72,13 @@
       max-width: 780px;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 20px;
-      align-items: start;
-    }
-
     .card {
       background: rgba(17, 24, 39, 0.96);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 22px;
+      margin-bottom: 20px;
     }
 
     .card h2 {
@@ -163,68 +157,66 @@
       width: 100%;
     }
 
-    .helper-list {
-      margin: 0;
-      padding-left: 18px;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 14px;
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
     }
 
-    .helper-list li {
-      margin-bottom: 8px;
-    }
-
-    .status-box,
-    .error-box,
-    .success-box,
-    .preview-box {
-      margin-top: 18px;
-      padding: 16px;
-      border-radius: 14px;
+    .status-panel {
+      border-radius: 16px;
       border: 1px solid var(--border);
       background: #0b1220;
+      padding: 16px;
+      min-height: 110px;
     }
 
-    .status-box strong,
-    .error-box strong,
-    .success-box strong,
-    .preview-box strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
+    .status-panel h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: var(--muted);
       text-transform: uppercase;
+      letter-spacing: 0.35px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
       letter-spacing: 0.3px;
+      margin-bottom: 12px;
     }
 
-    .status-box strong {
-      color: #bfdbfe;
+    .pill-idle {
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #cbd5e1;
     }
 
-    .error-box {
-      border-color: rgba(239, 68, 68, 0.4);
-      background: rgba(127, 29, 29, 0.18);
+    .pill-processing {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.28);
+      color: #fde68a;
     }
 
-    .error-box strong {
-      color: #fecaca;
-    }
-
-    .success-box {
-      border-color: rgba(34, 197, 94, 0.4);
-      background: rgba(20, 83, 45, 0.20);
-    }
-
-    .success-box strong {
+    .pill-success {
+      background: rgba(34, 197, 94, 0.14);
+      border: 1px solid rgba(34, 197, 94, 0.28);
       color: #bbf7d0;
     }
 
-    .status-line,
-    .error-line,
-    .success-line {
+    .pill-error {
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      color: #fecaca;
+    }
+
+    .status-text {
       margin: 0;
       color: var(--text);
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     .summary-grid {
@@ -250,6 +242,14 @@
     .summary-card .value {
       font-size: 24px;
       font-weight: 800;
+    }
+
+    .preview-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #0b1220;
     }
 
     table {
@@ -282,7 +282,7 @@
     }
 
     .button-row {
-      margin-top: 14px;
+      margin-top: 16px;
     }
 
     .fine-print {
@@ -293,7 +293,7 @@
     }
 
     @media (max-width: 860px) {
-      .grid {
+      .status-grid {
         grid-template-columns: 1fr;
       }
 
@@ -315,102 +315,85 @@
       <p class="subtitle">{{ app_subtitle }}</p>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <h2>Run cleanup</h2>
-        <p class="lead">
-          Upload your current Zeus inventory CSV and current KeyTrak inventory CSV.
-          This app removes all in-stock Zeus stock numbers from the KeyTrak list and emails you the leftover cleanup CSV.
-        </p>
+    <div class="card">
+      <h2>Run cleanup</h2>
+      <p class="lead">
+        Upload your current Zeus inventory CSV and current KeyTrak inventory CSV.
+        This app removes all in-stock Zeus stock numbers from the KeyTrak list and emails you the leftover cleanup CSV.
+      </p>
 
-        <form id="uploadForm">
-          <div class="field">
-            <label for="zeus_file">Zeus inventory CSV</label>
-            <input id="zeus_file" name="zeus_file" type="file" accept=".csv" required>
-          </div>
-
-          <div class="field">
-            <label for="keytrak_file">KeyTrak inventory CSV</label>
-            <input id="keytrak_file" name="keytrak_file" type="file" accept=".csv" required>
-          </div>
-
-          <div class="field">
-            <label for="email_to">Email result to</label>
-            <input
-              id="email_to"
-              name="email_to"
-              type="email"
-              value="{{ smtp_default_to }}"
-              placeholder="you@example.com"
-              required
-            >
-          </div>
-
-          <button id="submitButton" class="primary" type="submit">Process and email CSV</button>
-        </form>
-
-        <div id="statusBox" class="status-box hidden">
-          <strong>Status</strong>
-          <p id="statusLine" class="status-line"></p>
+      <form id="uploadForm">
+        <div class="field">
+          <label for="zeus_file">Zeus inventory CSV</label>
+          <input id="zeus_file" name="zeus_file" type="file" accept=".csv" required>
         </div>
 
-        <div id="successBox" class="success-box hidden">
-          <strong>Success</strong>
-          <p id="successLine" class="success-line"></p>
+        <div class="field">
+          <label for="keytrak_file">KeyTrak inventory CSV</label>
+          <input id="keytrak_file" name="keytrak_file" type="file" accept=".csv" required>
         </div>
 
-        <div id="errorBox" class="error-box hidden">
-          <strong>Error</strong>
-          <p id="errorLine" class="error-line"></p>
+        <div class="field">
+          <label for="email_to">Email result to</label>
+          <input
+            id="email_to"
+            name="email_to"
+            type="email"
+            value="{{ smtp_default_to }}"
+            placeholder="you@example.com"
+            required
+          >
         </div>
 
-        <div class="button-row hidden" id="resultButtons">
-          <button id="cleanupButton" class="secondary" type="button">Clear result</button>
-        </div>
-      </div>
+        <button id="submitButton" class="primary" type="submit">Process and email CSV</button>
+      </form>
 
-      <div class="card">
-        <h2>What this run does</h2>
-        <p class="lead">This is an email-only workflow now.</p>
-        <ul class="helper-list">
-          <li>Zeus inventory is treated as the truth source.</li>
-          <li>All Zeus in-stock stock numbers are removed from the KeyTrak list.</li>
-          <li>What remains in KeyTrak is likely sold or stale inventory.</li>
-          <li>The result CSV is emailed to you.</li>
-          <li>Uploaded source files are deleted after processing.</li>
-          <li>All activity is written to <code>logs/app.log</code>.</li>
-        </ul>
-
-        <div class="fine-print">
-          <div>• Zeus sample format: stock number in column 2.</div>
-          <div>• KeyTrak sample format: stock number in column 1, with first 2 rows skipped automatically.</div>
-          <div>• Preview below shows the first 25 leftover rows from the result.</div>
-        </div>
+      <div class="fine-print">
+        <div>• Zeus sample format: stock number in column 2.</div>
+        <div>• KeyTrak sample format: stock number in column 1, with first 2 rows skipped automatically.</div>
+        <div>• Preview below shows up to the first 25 leftover rows from the emailed result.</div>
       </div>
     </div>
 
-    <div id="summarySection" class="card hidden" style="margin-top: 20px;">
-      <h2>Run summary</h2>
-      <div class="summary-grid">
-        <div class="summary-card">
-          <div class="label">Zeus rows</div>
-          <div id="zeusCount" class="value">0</div>
+    <div class="card">
+      <div class="status-grid">
+        <div class="status-panel">
+          <h3>Status</h3>
+          <div id="statusPill" class="status-pill pill-idle">Idle</div>
+          <p id="statusText" class="status-text">Ready for the next cleanup run.</p>
         </div>
-        <div class="summary-card">
-          <div class="label">KeyTrak rows</div>
-          <div id="keytrakCount" class="value">0</div>
-        </div>
-        <div class="summary-card">
-          <div class="label">Leftover result rows</div>
-          <div id="resultCount" class="value">0</div>
+
+        <div class="status-panel">
+          <h3>Result</h3>
+          <p id="resultText" class="status-text muted">No run completed yet.</p>
+          <div class="button-row hidden" id="resultButtons">
+            <button id="cleanupButton" class="secondary" type="button">Clear result</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="previewSection" class="preview-box hidden">
-      <strong>Preview of leftover rows</strong>
-      <div class="muted">Showing up to the first 25 rows that will be emailed in the cleanup CSV.</div>
-      <div id="previewTableWrap"></div>
+      <div id="summarySection" class="hidden" style="margin-top: 18px;">
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="label">Zeus rows</div>
+            <div id="zeusCount" class="value">0</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">KeyTrak rows</div>
+            <div id="keytrakCount" class="value">0</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Leftover result rows</div>
+            <div id="resultCount" class="value">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="previewSection" class="preview-box hidden">
+        <strong style="display:block; margin-bottom:8px;">Preview of leftover rows</strong>
+        <div class="muted">Showing up to the first 25 rows that were emailed in the cleanup CSV.</div>
+        <div id="previewTableWrap"></div>
+      </div>
     </div>
   </div>
 
@@ -419,16 +402,12 @@
     const submitButton = document.getElementById('submitButton');
     const cleanupButton = document.getElementById('cleanupButton');
 
-    const statusBox = document.getElementById('statusBox');
-    const successBox = document.getElementById('successBox');
-    const errorBox = document.getElementById('errorBox');
+    const statusPill = document.getElementById('statusPill');
+    const statusText = document.getElementById('statusText');
+    const resultText = document.getElementById('resultText');
     const resultButtons = document.getElementById('resultButtons');
     const summarySection = document.getElementById('summarySection');
     const previewSection = document.getElementById('previewSection');
-
-    const statusLine = document.getElementById('statusLine');
-    const successLine = document.getElementById('successLine');
-    const errorLine = document.getElementById('errorLine');
 
     const zeusCount = document.getElementById('zeusCount');
     const keytrakCount = document.getElementById('keytrakCount');
@@ -438,16 +417,31 @@
     let activeTaskId = null;
     let pollTimer = null;
 
+    function setStatus(type, text) {
+      statusPill.className = 'status-pill';
+      if (type === 'processing') {
+        statusPill.classList.add('pill-processing');
+        statusPill.textContent = 'Processing';
+      } else if (type === 'success') {
+        statusPill.classList.add('pill-success');
+        statusPill.textContent = 'Success';
+      } else if (type === 'error') {
+        statusPill.classList.add('pill-error');
+        statusPill.textContent = 'Failed';
+      } else {
+        statusPill.classList.add('pill-idle');
+        statusPill.textContent = 'Idle';
+      }
+      statusText.textContent = text;
+    }
+
     function resetUi() {
-      successBox.classList.add('hidden');
-      errorBox.classList.add('hidden');
-      statusBox.classList.remove('hidden');
+      setStatus('processing', 'Starting upload...');
+      resultText.textContent = 'Waiting for results...';
+      resultText.className = 'status-text';
       summarySection.classList.add('hidden');
       previewSection.classList.add('hidden');
       resultButtons.classList.add('hidden');
-      statusLine.textContent = 'Starting upload...';
-      successLine.textContent = '';
-      errorLine.textContent = '';
       previewTableWrap.innerHTML = '';
       zeusCount.textContent = '0';
       keytrakCount.textContent = '0';
@@ -490,8 +484,10 @@
           throw new Error(data.error || 'Could not get task status.');
         }
 
-        statusBox.classList.remove('hidden');
-        statusLine.textContent = data.message || 'Working...';
+        setStatus(
+          data.status === 'error' ? 'error' : (data.status === 'done' ? 'success' : 'processing'),
+          data.message || 'Working...'
+        );
 
         if (data.summary) {
           zeusCount.textContent = data.summary.zeus_rows ?? 0;
@@ -509,26 +505,25 @@
           pollTimer = null;
           submitButton.disabled = false;
           resultButtons.classList.remove('hidden');
-          successLine.textContent = data.email_sent_to
+          resultText.textContent = data.email_sent_to
             ? `Cleanup CSV emailed to ${data.email_sent_to}`
             : 'Processing finished.';
-          successBox.classList.remove('hidden');
-          errorBox.classList.add('hidden');
+          resultText.className = 'status-text';
         } else if (data.status === 'error') {
           clearInterval(pollTimer);
           pollTimer = null;
           submitButton.disabled = false;
           resultButtons.classList.remove('hidden');
-          errorLine.textContent = data.error || 'An unknown error occurred.';
-          errorBox.classList.remove('hidden');
-          successBox.classList.add('hidden');
+          resultText.textContent = data.error || 'An unknown error occurred.';
+          resultText.className = 'status-text';
         }
       } catch (err) {
         clearInterval(pollTimer);
         pollTimer = null;
         submitButton.disabled = false;
-        errorLine.textContent = err.message || 'Could not poll task status.';
-        errorBox.classList.remove('hidden');
+        setStatus('error', 'Could not check task status.');
+        resultText.textContent = err.message || 'Could not poll task status.';
+        resultText.className = 'status-text';
       }
     }
 
@@ -558,14 +553,14 @@
         }
 
         activeTaskId = data.task_id;
-        statusLine.textContent = 'Files uploaded. Starting processor...';
+        setStatus('processing', 'Files uploaded. Starting processor...');
+        resultText.textContent = 'Run accepted. Working...';
         pollTimer = setInterval(() => pollStatus(activeTaskId), 1200);
         pollStatus(activeTaskId);
       } catch (err) {
         submitButton.disabled = false;
-        statusBox.classList.add('hidden');
-        errorLine.textContent = err.message || 'Upload failed.';
-        errorBox.classList.remove('hidden');
+        setStatus('error', 'Upload failed.');
+        resultText.textContent = err.message || 'Upload failed.';
       }
     });
 
