@@ -2,296 +2,326 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ app_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {
-      --bg1: #0f172a;
-      --bg2: #111827;
-      --card: rgba(17, 24, 39, 0.88);
-      --line: rgba(255, 255, 255, 0.10);
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --border: #334155;
       --text: #e5e7eb;
-      --muted: #9ca3af;
-      --good: #10b981;
-      --warn: #f59e0b;
-      --bad: #ef4444;
-      --accent: #38bdf8;
-      --accent2: #818cf8;
-      --shadow: 0 30px 60px rgba(0,0,0,0.35);
-      --radius: 22px;
+      --muted: #94a3b8;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(56,189,248,0.16), transparent 30%),
-        radial-gradient(circle at top right, rgba(129,140,248,0.14), transparent 28%),
-        linear-gradient(145deg, var(--bg1), var(--bg2));
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 28%),
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 24%),
+        linear-gradient(180deg, #0b1220 0%, var(--bg) 100%);
+      color: var(--text);
       min-height: 100vh;
     }
 
     .wrap {
-      max-width: 1180px;
+      max-width: 980px;
       margin: 0 auto;
-      padding: 36px 18px 48px;
+      padding: 32px 18px 48px;
     }
 
     .hero {
-      display: grid;
-      gap: 18px;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
-    .eyebrow {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      width: fit-content;
+    .badge {
+      display: inline-block;
+      margin-bottom: 14px;
       padding: 8px 12px;
       border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-      color: #dbeafe;
-      font-size: 0.86rem;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #bfdbfe;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
     }
 
     h1 {
-      margin: 0;
-      font-size: clamp(2rem, 5vw, 3.25rem);
-      line-height: 1.03;
-      letter-spacing: -0.04em;
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.1;
     }
 
-    .sub {
+    .subtitle {
       margin: 0;
       color: var(--muted);
-      max-width: 760px;
-      font-size: 1.02rem;
+      font-size: 16px;
       line-height: 1.6;
+      max-width: 780px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: 420px 1fr;
+      grid-template-columns: 1.1fr 0.9fr;
       gap: 20px;
       align-items: start;
     }
 
     .card {
-      background: var(--card);
-      border: 1px solid var(--line);
+      background: rgba(17, 24, 39, 0.96);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .panel {
       padding: 22px;
     }
 
-    h2, h3 {
-      margin: 0 0 10px;
-      letter-spacing: -0.03em;
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
     }
 
-    .muted { color: var(--muted); }
-
-    .field { margin-bottom: 16px; }
-    .field label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 0.92rem;
-      color: #d1d5db;
-    }
-
-    .field input[type="file"],
-    .field input[type="email"] {
-      width: 100%;
-      padding: 13px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-    }
-
-    .field input::file-selector-button {
-      border: 0;
-      border-radius: 10px;
-      padding: 9px 12px;
-      margin-right: 12px;
-      background: rgba(56,189,248,0.18);
-      color: #dbeafe;
-      cursor: pointer;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 22px;
-    }
-
-    button, .button-link {
-      border: 0;
-      border-radius: 14px;
-      padding: 13px 18px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      transition: transform 0.15s ease, opacity 0.15s ease;
-    }
-
-    button:hover, .button-link:hover {
-      transform: translateY(-1px);
-    }
-
-    .primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: white;
-      box-shadow: 0 12px 30px rgba(56,189,248,0.2);
-    }
-
-    .secondary {
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-
-    .hidden { display: none !important; }
-
-    .tips {
-      display: grid;
-      gap: 10px;
-      margin-top: 16px;
+    .card p.lead {
+      margin: 0 0 20px;
       color: var(--muted);
-      font-size: 0.94rem;
       line-height: 1.5;
     }
 
-    .status-strip {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 16px 18px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-      margin-bottom: 18px;
+    .field {
+      margin-bottom: 16px;
     }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 11px;
-      border-radius: 999px;
-      font-size: 0.84rem;
-      border: 1px solid rgba(255,255,255,0.12);
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 700;
     }
 
-    .queued, .processing { color: #fde68a; background: rgba(245,158,11,0.14); }
-    .done { color: #bbf7d0; background: rgba(16,185,129,0.14); }
-    .error { color: #fecaca; background: rgba(239,68,68,0.14); }
-
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
+    input[type="file"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      font-size: 14px;
     }
 
-    .metric {
-      padding: 16px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.035);
+    input[type="file"]::file-selector-button {
+      margin-right: 12px;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
     }
 
-    .metric .label {
-      font-size: 0.84rem;
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .primary {
+      background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      width: 100%;
+    }
+
+    .secondary {
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid var(--border);
+      width: 100%;
+    }
+
+    .helper-list {
+      margin: 0;
+      padding-left: 18px;
       color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .helper-list li {
       margin-bottom: 8px;
     }
 
-    .metric .value {
-      font-size: 1.9rem;
-      font-weight: 800;
-      letter-spacing: -0.04em;
+    .status-box,
+    .error-box,
+    .success-box,
+    .preview-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #0b1220;
     }
 
-    .preview-wrap {
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255,255,255,0.03);
+    .status-box strong,
+    .error-box strong,
+    .success-box strong,
+    .preview-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-box strong {
+      color: #bfdbfe;
+    }
+
+    .error-box {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(127, 29, 29, 0.18);
+    }
+
+    .error-box strong {
+      color: #fecaca;
+    }
+
+    .success-box {
+      border-color: rgba(34, 197, 94, 0.4);
+      background: rgba(20, 83, 45, 0.20);
+    }
+
+    .success-box strong {
+      color: #bbf7d0;
+    }
+
+    .status-line,
+    .error-line,
+    .success-line {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .summary-card .value {
+      font-size: 24px;
+      font-weight: 800;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 740px;
+      margin-top: 14px;
+      font-size: 13px;
     }
 
     th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
       text-align: left;
-      font-size: 0.92rem;
+      padding: 10px 8px;
+      border-bottom: 1px solid #243042;
       vertical-align: top;
     }
 
     th {
-      position: sticky;
-      top: 0;
-      background: rgba(17,24,39,0.96);
-      color: #dbeafe;
-      z-index: 1;
+      color: #bfdbfe;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
 
-    .empty {
-      padding: 26px;
-      text-align: center;
+    .muted {
       color: var(--muted);
     }
 
-    .error-box {
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(239,68,68,0.12);
-      border: 1px solid rgba(239,68,68,0.28);
-      color: #fee2e2;
+    .hidden {
+      display: none;
+    }
+
+    .button-row {
       margin-top: 14px;
-      white-space: pre-wrap;
     }
 
-    @media (max-width: 980px) {
-      .grid { grid-template-columns: 1fr; }
+    .fine-print {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
     }
 
-    @media (max-width: 700px) {
-      .summary { grid-template-columns: 1fr; }
-      .status-strip { flex-direction: column; align-items: flex-start; }
-      .panel { padding: 18px; }
-      .wrap { padding: 22px 14px 34px; }
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <section class="hero">
-      <span class="eyebrow">Zeus is the truth source • KeyTrak cleanup list</span>
+    <div class="hero">
+      <div class="badge">Zeus is the truth source</div>
       <h1>{{ app_title }}</h1>
-      <p class="sub">{{ app_subtitle }}</p>
-    </section>
+      <p class="subtitle">{{ app_subtitle }}</p>
+    </div>
 
-    <section class="grid">
-      <div class="card panel">
-        <h2>Upload the two monthly CSVs</h2>
-        <p class="muted">This compares <strong>KeyTrak minus Zeus</strong>. Anything left in KeyTrak but not in Zeus is treated as a likely sold or stale unit.</p>
+    <div class="grid">
+      <div class="card">
+        <h2>Run cleanup</h2>
+        <p class="lead">
+          Upload your current Zeus inventory CSV and current KeyTrak inventory CSV.
+          This app removes all in-stock Zeus stock numbers from the KeyTrak list and emails you the leftover cleanup CSV.
+        </p>
 
         <form id="uploadForm">
           <div class="field">
@@ -306,275 +336,260 @@
 
           <div class="field">
             <label for="email_to">Email result to</label>
-            <input id="email_to" name="email_to" type="email" value="{{ smtp_default_to }}" placeholder="you@example.com" {% if not smtp_enabled and not smtp_default_to %}placeholder="Optional until SMTP is configured"{% endif %}>
+            <input
+              id="email_to"
+              name="email_to"
+              type="email"
+              value="{{ smtp_default_to }}"
+              placeholder="you@example.com"
+              required
+            >
           </div>
 
-          <div class="button-row">
-            <button class="primary" id="submitButton" type="submit">Process inventory</button>
-            <button class="secondary" id="resetButton" type="button">Start over</button>
-          </div>
+          <button id="submitButton" class="primary" type="submit">Process and email CSV</button>
         </form>
 
-        <div class="tips">
-          <div>• Zeus stock number is read from column 2.</div>
-          <div>• KeyTrak stock number is read from column 1 and the title rows are skipped automatically.</div>
-          <div>• Uploaded source files are deleted after processing. Result files auto-clean after the retention window.</div>
+        <div id="statusBox" class="status-box hidden">
+          <strong>Status</strong>
+          <p id="statusLine" class="status-line"></p>
         </div>
 
-        <div id="formError" class="error-box hidden"></div>
-      </div>
-
-      <div class="card panel">
-        <div class="status-strip">
-          <div>
-            <h3>Processing status</h3>
-            <div id="statusMessage" class="muted">Waiting for files.</div>
-          </div>
-          <span id="statusPill" class="pill queued">Idle</span>
+        <div id="successBox" class="success-box hidden">
+          <strong>Success</strong>
+          <p id="successLine" class="success-line"></p>
         </div>
 
-        <div id="summary" class="summary hidden">
-          <div class="metric">
-            <div class="label">Zeus rows</div>
-            <div class="value" id="zeusRows">0</div>
-          </div>
-          <div class="metric">
-            <div class="label">KeyTrak rows</div>
-            <div class="value" id="keytrakRows">0</div>
-          </div>
-          <div class="metric">
-            <div class="label">Likely sold / stale</div>
-            <div class="value" id="resultRows">0</div>
-          </div>
+        <div id="errorBox" class="error-box hidden">
+          <strong>Error</strong>
+          <p id="errorLine" class="error-line"></p>
         </div>
 
         <div class="button-row hidden" id="resultButtons">
-          <a id="downloadButton" class="button-link primary" href="#">Download CSV</a>
           <button id="cleanupButton" class="secondary" type="button">Clear result</button>
         </div>
-
-        <div id="emailStatus" class="muted" style="margin: 14px 0 18px;"></div>
-
-        <div class="preview-wrap">
-          <div id="emptyState" class="empty">No results yet. Upload both CSV files to start.</div>
-          <table id="previewTable" class="hidden">
-            <thead><tr id="previewHead"></tr></thead>
-            <tbody id="previewBody"></tbody>
-          </table>
-        </div>
-
-        <div id="statusError" class="error-box hidden"></div>
       </div>
-    </section>
+
+      <div class="card">
+        <h2>What this run does</h2>
+        <p class="lead">This is an email-only workflow now.</p>
+        <ul class="helper-list">
+          <li>Zeus inventory is treated as the truth source.</li>
+          <li>All Zeus in-stock stock numbers are removed from the KeyTrak list.</li>
+          <li>What remains in KeyTrak is likely sold or stale inventory.</li>
+          <li>The result CSV is emailed to you.</li>
+          <li>Uploaded source files are deleted after processing.</li>
+          <li>All activity is written to <code>logs/app.log</code>.</li>
+        </ul>
+
+        <div class="fine-print">
+          <div>• Zeus sample format: stock number in column 2.</div>
+          <div>• KeyTrak sample format: stock number in column 1, with first 2 rows skipped automatically.</div>
+          <div>• Preview below shows the first 25 leftover rows from the result.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="summarySection" class="card hidden" style="margin-top: 20px;">
+      <h2>Run summary</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="label">Zeus rows</div>
+          <div id="zeusCount" class="value">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">KeyTrak rows</div>
+          <div id="keytrakCount" class="value">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Leftover result rows</div>
+          <div id="resultCount" class="value">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="previewSection" class="preview-box hidden">
+      <strong>Preview of leftover rows</strong>
+      <div class="muted">Showing up to the first 25 rows that will be emailed in the cleanup CSV.</div>
+      <div id="previewTableWrap"></div>
+    </div>
   </div>
 
   <script>
     const uploadForm = document.getElementById('uploadForm');
     const submitButton = document.getElementById('submitButton');
-    const resetButton = document.getElementById('resetButton');
     const cleanupButton = document.getElementById('cleanupButton');
-    const formError = document.getElementById('formError');
-    const statusError = document.getElementById('statusError');
-    const statusMessage = document.getElementById('statusMessage');
-    const statusPill = document.getElementById('statusPill');
-    const summary = document.getElementById('summary');
+
+    const statusBox = document.getElementById('statusBox');
+    const successBox = document.getElementById('successBox');
+    const errorBox = document.getElementById('errorBox');
     const resultButtons = document.getElementById('resultButtons');
-    const downloadButton = document.getElementById('downloadButton');
-    const emailStatus = document.getElementById('emailStatus');
-    const previewTable = document.getElementById('previewTable');
-    const previewHead = document.getElementById('previewHead');
-    const previewBody = document.getElementById('previewBody');
-    const emptyState = document.getElementById('emptyState');
-    const zeusRows = document.getElementById('zeusRows');
-    const keytrakRows = document.getElementById('keytrakRows');
-    const resultRows = document.getElementById('resultRows');
+    const summarySection = document.getElementById('summarySection');
+    const previewSection = document.getElementById('previewSection');
 
-    let currentTaskId = null;
-    let pollHandle = null;
+    const statusLine = document.getElementById('statusLine');
+    const successLine = document.getElementById('successLine');
+    const errorLine = document.getElementById('errorLine');
 
-    function setPill(state, label) {
-      statusPill.className = 'pill ' + state;
-      statusPill.textContent = label;
-    }
+    const zeusCount = document.getElementById('zeusCount');
+    const keytrakCount = document.getElementById('keytrakCount');
+    const resultCount = document.getElementById('resultCount');
+    const previewTableWrap = document.getElementById('previewTableWrap');
 
-    function showError(el, message) {
-      el.textContent = message;
-      el.classList.remove('hidden');
-    }
+    let activeTaskId = null;
+    let pollTimer = null;
 
-    function hideError(el) {
-      el.textContent = '';
-      el.classList.add('hidden');
-    }
-
-    function resetView() {
-      currentTaskId = null;
-      if (pollHandle) {
-        clearInterval(pollHandle);
-        pollHandle = null;
-      }
-      uploadForm.reset();
-      hideError(formError);
-      hideError(statusError);
-      statusMessage.textContent = 'Waiting for files.';
-      setPill('queued', 'Idle');
-      summary.classList.add('hidden');
+    function resetUi() {
+      successBox.classList.add('hidden');
+      errorBox.classList.add('hidden');
+      statusBox.classList.remove('hidden');
+      summarySection.classList.add('hidden');
+      previewSection.classList.add('hidden');
       resultButtons.classList.add('hidden');
-      emailStatus.textContent = '';
-      emptyState.classList.remove('hidden');
-      previewTable.classList.add('hidden');
-      previewHead.innerHTML = '';
-      previewBody.innerHTML = '';
-      submitButton.disabled = false;
-      submitButton.textContent = 'Process inventory';
+      statusLine.textContent = 'Starting upload...';
+      successLine.textContent = '';
+      errorLine.textContent = '';
+      previewTableWrap.innerHTML = '';
+      zeusCount.textContent = '0';
+      keytrakCount.textContent = '0';
+      resultCount.textContent = '0';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
 
     function renderPreview(rows) {
-      previewHead.innerHTML = '';
-      previewBody.innerHTML = '';
-
-      if (!rows || rows.length === 0) {
-        emptyState.textContent = 'No leftover KeyTrak rows were found. Nice and clean.';
-        emptyState.classList.remove('hidden');
-        previewTable.classList.add('hidden');
+      if (!rows || !rows.length) {
+        previewTableWrap.innerHTML = '<p class="muted">No leftover rows found. KeyTrak is fully cleaned up against Zeus.</p>';
+        previewSection.classList.remove('hidden');
         return;
       }
 
-      const headers = Object.keys(rows[0]);
-      headers.forEach(header => {
-        const th = document.createElement('th');
-        th.textContent = header;
-        previewHead.appendChild(th);
-      });
+      const columns = Object.keys(rows[0]);
+      const thead = `<thead><tr>${columns.map(col => `<th>${escapeHtml(col)}</th>`).join('')}</tr></thead>`;
+      const tbody = rows.map(row => {
+        const cells = columns.map(col => `<td>${escapeHtml(row[col] ?? '')}</td>`).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
 
-      rows.forEach(row => {
-        const tr = document.createElement('tr');
-        headers.forEach(header => {
-          const td = document.createElement('td');
-          td.textContent = row[header] ?? '';
-          tr.appendChild(td);
-        });
-        previewBody.appendChild(tr);
-      });
-
-      emptyState.classList.add('hidden');
-      previewTable.classList.remove('hidden');
+      previewTableWrap.innerHTML = `<table>${thead}<tbody>${tbody}</tbody></table>`;
+      previewSection.classList.remove('hidden');
     }
 
-    async function pollStatus() {
-      if (!currentTaskId) return;
+    async function pollStatus(taskId) {
+      try {
+        const res = await fetch(`/status/${taskId}`);
+        const data = await res.json();
 
-      const res = await fetch(`/status/${currentTaskId}`);
-      const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Could not get task status.');
+        }
 
-      if (!res.ok) {
-        showError(statusError, data.error || 'Could not get task status.');
-        setPill('error', 'Error');
-        clearInterval(pollHandle);
-        return;
-      }
+        statusBox.classList.remove('hidden');
+        statusLine.textContent = data.message || 'Working...';
 
-      statusMessage.textContent = data.message || 'Working...';
-      hideError(statusError);
+        if (data.summary) {
+          zeusCount.textContent = data.summary.zeus_rows ?? 0;
+          keytrakCount.textContent = data.summary.keytrak_rows ?? 0;
+          resultCount.textContent = data.summary.result_rows ?? 0;
+          summarySection.classList.remove('hidden');
+        }
 
-      if (data.status === 'queued') setPill('queued', 'Queued');
-      if (data.status === 'processing') setPill('processing', 'Processing');
-      if (data.status === 'done') setPill('done', 'Done');
-      if (data.status === 'error') setPill('error', 'Error');
+        if (Array.isArray(data.preview_rows)) {
+          renderPreview(data.preview_rows);
+        }
 
-      if (data.summary && Object.keys(data.summary).length) {
-        summary.classList.remove('hidden');
-        zeusRows.textContent = data.summary.zeus_rows ?? 0;
-        keytrakRows.textContent = data.summary.keytrak_rows ?? 0;
-        resultRows.textContent = data.summary.result_rows ?? 0;
-      }
-
-      if (data.preview_rows) {
-        renderPreview(data.preview_rows);
-      }
-
-      if (data.download_url) {
-        resultButtons.classList.remove('hidden');
-        downloadButton.href = data.download_url;
-      }
-
-      if (data.email_sent_to) {
-        emailStatus.textContent = `Email sent to ${data.email_sent_to}`;
-      } else if (data.status === 'done') {
-        emailStatus.textContent = 'Processing finished. No email was sent.';
-      }
-
-      if (data.error) {
-        showError(statusError, data.error);
-      }
-
-      if (data.status === 'done' || data.status === 'error') {
-        clearInterval(pollHandle);
-        pollHandle = null;
+        if (data.status === 'done') {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          submitButton.disabled = false;
+          resultButtons.classList.remove('hidden');
+          successLine.textContent = data.email_sent_to
+            ? `Cleanup CSV emailed to ${data.email_sent_to}`
+            : 'Processing finished.';
+          successBox.classList.remove('hidden');
+          errorBox.classList.add('hidden');
+        } else if (data.status === 'error') {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          submitButton.disabled = false;
+          resultButtons.classList.remove('hidden');
+          errorLine.textContent = data.error || 'An unknown error occurred.';
+          errorBox.classList.remove('hidden');
+          successBox.classList.add('hidden');
+        }
+      } catch (err) {
+        clearInterval(pollTimer);
+        pollTimer = null;
         submitButton.disabled = false;
-        submitButton.textContent = 'Process inventory';
+        errorLine.textContent = err.message || 'Could not poll task status.';
+        errorBox.classList.remove('hidden');
       }
     }
 
     uploadForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      hideError(formError);
-      hideError(statusError);
-      summary.classList.add('hidden');
-      resultButtons.classList.add('hidden');
-      emailStatus.textContent = '';
-      emptyState.textContent = 'Waiting for results...';
-      emptyState.classList.remove('hidden');
-      previewTable.classList.add('hidden');
+
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+
+      resetUi();
       submitButton.disabled = true;
-      submitButton.textContent = 'Processing...';
-      setPill('processing', 'Uploading');
-      statusMessage.textContent = 'Uploading files...';
 
       const formData = new FormData(uploadForm);
-      const res = await fetch('/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
 
-      if (!res.ok) {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Process inventory';
-        setPill('error', 'Error');
-        showError(formError, data.error || 'Upload failed.');
-        statusMessage.textContent = 'Upload failed.';
-        return;
-      }
-
-      currentTaskId = data.task_id;
-      statusMessage.textContent = 'Files uploaded. Starting processor...';
-      setPill('processing', 'Processing');
-      pollHandle = setInterval(() => {
-        pollStatus().catch(err => {
-          showError(statusError, err.message || 'Status polling failed.');
-          setPill('error', 'Error');
-          clearInterval(pollHandle);
-          pollHandle = null;
-          submitButton.disabled = false;
-          submitButton.textContent = 'Process inventory';
+      try {
+        const res = await fetch('/upload', {
+          method: 'POST',
+          body: formData
         });
-      }, 1000);
-      pollStatus().catch(() => {});
-    });
 
-    resetButton.addEventListener('click', resetView);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Upload failed.');
+        }
+
+        activeTaskId = data.task_id;
+        statusLine.textContent = 'Files uploaded. Starting processor...';
+        pollTimer = setInterval(() => pollStatus(activeTaskId), 1200);
+        pollStatus(activeTaskId);
+      } catch (err) {
+        submitButton.disabled = false;
+        statusBox.classList.add('hidden');
+        errorLine.textContent = err.message || 'Upload failed.';
+        errorBox.classList.remove('hidden');
+      }
+    });
 
     cleanupButton.addEventListener('click', async () => {
-      if (!currentTaskId) {
-        resetView();
+      if (!activeTaskId) {
+        window.location.reload();
         return;
       }
-      await fetch(`/cleanup/${currentTaskId}`, { method: 'POST' });
-      resetView();
-    });
 
-    resetView();
+      try {
+        await fetch(`/cleanup/${activeTaskId}`, { method: 'POST' });
+      } catch (err) {
+        // ignore cleanup error and still reset ui
+      }
+
+      activeTaskId = null;
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+
+      uploadForm.reset();
+      window.location.reload();
+    });
   </script>
 </body>
 </html>
