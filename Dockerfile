@@ -9,8 +9,8 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN mkdir -p /app/tmp
+RUN mkdir -p /app/tmp /app/logs
 
-EXPOSE 8000
+EXPOSE 8088
 
-CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:8000", "app:app", "--timeout", "120"]
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:8088", "app:app", "--timeout", "120"]
