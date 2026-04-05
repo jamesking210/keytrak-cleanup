@@ -14,7 +14,7 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request, send_file
+from flask import Flask, jsonify, render_template, request
 from werkzeug.utils import secure_filename
 
 load_dotenv()
@@ -28,7 +28,7 @@ LOG_DIR.mkdir(exist_ok=True)
 APP_TITLE = os.getenv("APP_TITLE", "KeyTrak Cleanup")
 APP_SUBTITLE = os.getenv(
     "APP_SUBTITLE",
-    "Upload Zeus and KeyTrak inventory files, compare them, download the cleanup list, and email yourself a copy.",
+    "Upload Zeus and KeyTrak inventory files, compare them, preview the cleanup list, and email yourself a copy.",
 )
 APP_PORT = int(os.getenv("APP_PORT", "8088"))
 RESULT_RETENTION_MINUTES = int(os.getenv("RESULT_RETENTION_MINUTES", "30"))
@@ -128,7 +128,9 @@ def read_zeus_csv(path: Path) -> pd.DataFrame:
         df = pd.read_csv(path, dtype=str, keep_default_na=False, encoding="latin-1")
 
     if len(df.columns) < 2:
-        raise ProcessingError("Zeus file does not have enough columns. Expected stock number in column 2.")
+        raise ProcessingError(
+            "Zeus file does not have enough columns. Expected stock number in column 2."
+        )
 
     stock_col = df.columns[1]
     df = df.copy()
@@ -143,12 +145,18 @@ def read_zeus_csv(path: Path) -> pd.DataFrame:
 def read_keytrak_csv(path: Path) -> pd.DataFrame:
     logger.info("Reading KeyTrak CSV: %s", path.name)
     try:
-        df = pd.read_csv(path, dtype=str, keep_default_na=False, skiprows=2, encoding="utf-8-sig")
+        df = pd.read_csv(
+            path, dtype=str, keep_default_na=False, skiprows=2, encoding="utf-8-sig"
+        )
     except UnicodeDecodeError:
-        df = pd.read_csv(path, dtype=str, keep_default_na=False, skiprows=2, encoding="latin-1")
+        df = pd.read_csv(
+            path, dtype=str, keep_default_na=False, skiprows=2, encoding="latin-1"
+        )
 
     if len(df.columns) < 1:
-        raise ProcessingError("KeyTrak file does not have any columns. Expected stock number in column 1.")
+        raise ProcessingError(
+            "KeyTrak file does not have any columns. Expected stock number in column 1."
+        )
 
     stock_col = df.columns[0]
     df = df.copy()
@@ -190,7 +198,9 @@ def write_result_csv(result_df: pd.DataFrame, task_dir: Path, task_id: str) -> P
 
 def send_email_with_attachment(recipient: str, result_path: Path, summary: Dict[str, int]) -> None:
     if not SMTP_ENABLED:
-        raise ProcessingError("SMTP is disabled. Set SMTP_ENABLED=true and fill in your mail settings.")
+        raise ProcessingError(
+            "SMTP is disabled. This app is email-only, so set SMTP_ENABLED=true and fill in your mail settings."
+        )
     if not recipient:
         raise ProcessingError("No email recipient provided.")
     if not SMTP_HOST or not SMTP_FROM:
@@ -251,7 +261,6 @@ def task_to_dict(task: Task) -> Dict[str, object]:
         "preview_rows": task.preview_rows,
         "email_sent_to": task.email_sent_to,
         "result_filename": task.result_filename,
-        "download_url": f"/download/{task.id}" if task.result_path else None,
         "created_at": task.created_at.isoformat(),
     }
 
@@ -323,16 +332,13 @@ def process_files(task_id: str, zeus_path: Path, keytrak_path: Path, recipient: 
                     file_path.unlink()
         logger.info("Uploaded source files deleted for task %s", task_id)
 
-        email_sent_to = None
-        if recipient:
-            send_email_with_attachment(recipient, result_path, summary)
-            email_sent_to = recipient
+        send_email_with_attachment(recipient, result_path, summary)
 
         set_task(
             task_id,
             status="done",
-            message="Done. Your cleanup CSV is ready to download.",
-            email_sent_to=email_sent_to,
+            message="Done. Your cleanup CSV has been emailed.",
+            email_sent_to=recipient,
             cleanup_at=datetime.now() + timedelta(minutes=RESULT_RETENTION_MINUTES),
         )
         logger.info("Task %s completed successfully", task_id)
@@ -368,6 +374,14 @@ def upload():
     keytrak_file = request.files.get("keytrak_file")
     recipient = (request.form.get("email_to") or SMTP_TO).strip()
 
+    if not SMTP_ENABLED:
+        logger.warning("Upload rejected: SMTP is disabled in email-only mode")
+        return jsonify(
+            {
+                "error": "SMTP is not enabled. This app is email-only, so set SMTP_ENABLED=true in .env before running a job."
+            }
+        ), 400
+
     if not zeus_file or not zeus_file.filename:
         logger.warning("Upload rejected: missing Zeus file")
         return jsonify({"error": "Please choose the Zeus CSV file."}), 400
@@ -380,8 +394,8 @@ def upload():
         logger.warning("Upload rejected: non-CSV file uploaded")
         return jsonify({"error": "Both files must be CSV files."}), 400
 
-    if SMTP_ENABLED and not recipient:
-        logger.warning("Upload rejected: SMTP enabled but no recipient provided")
+    if not recipient:
+        logger.warning("Upload rejected: no recipient provided")
         return jsonify({"error": "Please provide an email address or set SMTP_TO in the environment."}), 400
 
     task_id = uuid.uuid4().hex
@@ -400,7 +414,7 @@ def upload():
         task_id,
         zeus_filename,
         keytrak_filename,
-        recipient or "(none)",
+        recipient,
     )
 
     task = Task(id=task_id, created_at=datetime.now(), message="Files uploaded. Starting processor...")
@@ -426,20 +440,6 @@ def status(task_id: str):
             logger.warning("Status requested for missing task %s", task_id)
             return jsonify({"error": "Task not found or already cleaned up."}), 404
         return jsonify(task_to_dict(task))
-
-
-@app.get("/download/<task_id>")
-def download(task_id: str):
-    with TASKS_LOCK:
-        task = TASKS.get(task_id)
-        if not task or not task.result_path or not task.result_path.exists():
-            logger.warning("Download requested for missing result on task %s", task_id)
-            return jsonify({"error": "Result file not found or already cleaned up."}), 404
-        path = task.result_path
-        filename = task.result_filename or path.name
-
-    logger.info("Result downloaded for task %s: %s", task_id, filename)
-    return send_file(path, as_attachment=True, download_name=filename, mimetype="text/csv")
 
 
 @app.post("/cleanup/<task_id>")
