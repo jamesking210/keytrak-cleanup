@@ -21,11 +21,11 @@ That leftover list is your cleanup list of likely **sold** or **stale** units st
 - Removes all in-stock Zeus stock numbers from the KeyTrak list
 - Shows processing status on the webpage
 - Shows errors on the webpage if something fails
-- Generates a downloadable CSV result
+- Shows a preview of the first 25 leftover result rows
 - Emails a copy of the result CSV
 - Deletes uploaded source files after successful processing
 - Cleans up temporary task files after completion
-- Writes persistent logs for processing, downloads, cleanup, and email activity
+- Writes persistent logs for processing, cleanup, and email activity
 
 ---
 
@@ -65,6 +65,27 @@ Example file: `Lombard Toyota_Current Inventory_04-02-2026_15-33_PM.csv`
 - Has a title row and blank row before the real header
 - The app automatically skips the first 2 rows
 - **Stock number is column 1**
+
+---
+
+## Email-only workflow
+
+This app no longer offers CSV download from the website.
+
+The website is used for:
+
+- uploading the two CSV files
+- watching processing status
+- seeing preview rows
+- seeing errors
+- confirming which email address received the CSV
+
+The final cleanup CSV is delivered by email only.
+
+Because of that:
+
+- **SMTP must be configured**
+- a recipient email address must be provided or stored in `.env`
 
 ---
 
