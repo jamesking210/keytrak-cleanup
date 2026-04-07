@@ -1,6 +1,5 @@
 .env
-uploads/
-results/
+tmp/
 logs/
 __pycache__/
 *.pyc
