@@ -1,0 +1,14 @@
+2026-04-07 04:17:19,896 | INFO | MainThread | Reading Zeus CSV: Inv_Mgrs.csv
+2026-04-07 04:17:19,905 | INFO | MainThread | Zeus rows after cleanup: 222
+2026-04-07 04:17:19,906 | INFO | MainThread | Reading KeyTrak current inventory CSV: Lombard Toyota_Current Inventory_04-02-2026_15-33_PM.csv
+2026-04-07 04:17:19,910 | INFO | MainThread | KeyTrak current inventory rows after cleanup: 141
+2026-04-07 04:17:19,911 | INFO | MainThread | Reading KeyTrak Items Out by User CSV: Lombard Toyota_Items Out by User_04-06-2026_16-19_PM.csv
+2026-04-07 04:17:19,918 | INFO | MainThread | Items Out by User rows after cleanup/dedupe: 25
+2026-04-07 04:17:19,923 | INFO | MainThread | Compare complete. Zeus rows=222 | KeyTrak rows=141 | Result rows=19
+2026-04-07 04:17:38,391 | INFO | MainThread | Reading Zeus CSV: Inv_Mgrs.csv
+2026-04-07 04:17:38,398 | INFO | MainThread | Zeus rows after cleanup: 222
+2026-04-07 04:17:38,399 | INFO | MainThread | Reading KeyTrak current inventory CSV: Lombard Toyota_Current Inventory_04-02-2026_15-33_PM.csv
+2026-04-07 04:17:38,403 | INFO | MainThread | KeyTrak current inventory rows after cleanup: 141
+2026-04-07 04:17:38,403 | INFO | MainThread | Reading KeyTrak Items Out by User CSV: Lombard Toyota_Items Out by User_04-06-2026_16-19_PM.csv
+2026-04-07 04:17:38,410 | INFO | MainThread | Items Out by User rows after cleanup/dedupe: 25
+2026-04-07 04:17:38,414 | INFO | MainThread | Compare complete. Zeus rows=222 | KeyTrak rows=141 | Result rows=19

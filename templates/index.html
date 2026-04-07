@@ -10,6 +10,7 @@
       --panel: #111827;
       --panel-2: #1f2937;
       --border: #334155;
+      --border-strong: #475569;
       --text: #e5e7eb;
       --muted: #94a3b8;
       --green: #22c55e;
@@ -20,9 +21,7 @@
       --radius: 18px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -36,14 +35,12 @@
     }
 
     .wrap {
-      max-width: 980px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 32px 18px 48px;
     }
 
-    .hero {
-      margin-bottom: 20px;
-    }
+    .hero { margin-bottom: 20px; }
 
     .badge {
       display: inline-block;
@@ -69,7 +66,7 @@
       color: var(--muted);
       font-size: 16px;
       line-height: 1.6;
-      max-width: 780px;
+      max-width: 900px;
     }
 
     .card {
@@ -92,9 +89,77 @@
       line-height: 1.5;
     }
 
-    .field {
-      margin-bottom: 16px;
+    .drop-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
     }
+
+    .drop-zone {
+      position: relative;
+      border: 1.5px dashed var(--border-strong);
+      background: #0b1220;
+      border-radius: 16px;
+      min-height: 150px;
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.1s ease, background 0.15s ease;
+    }
+
+    .drop-zone:hover {
+      transform: translateY(-1px);
+      border-color: #64748b;
+    }
+
+    .drop-zone.dragover {
+      border-color: #60a5fa;
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .drop-zone.has-file {
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .drop-zone input[type="file"] {
+      display: none;
+    }
+
+    .drop-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .drop-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .drop-copy {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .file-chip {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: var(--text);
+      font-size: 12px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .field { margin-top: 18px; }
 
     label {
       display: block;
@@ -103,7 +168,6 @@
       font-weight: 700;
     }
 
-    input[type="file"],
     input[type="email"] {
       width: 100%;
       padding: 12px 14px;
@@ -112,16 +176,6 @@
       background: #0b1220;
       color: var(--text);
       font-size: 14px;
-    }
-
-    input[type="file"]::file-selector-button {
-      margin-right: 12px;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 12px;
-      background: var(--panel-2);
-      color: var(--text);
-      cursor: pointer;
     }
 
     button {
@@ -134,9 +188,7 @@
       transition: transform 0.08s ease, opacity 0.15s ease;
     }
 
-    button:hover {
-      transform: translateY(-1px);
-    }
+    button:hover { transform: translateY(-1px); }
 
     button:disabled {
       opacity: 0.65;
@@ -148,6 +200,7 @@
       background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
       color: white;
       width: 100%;
+      margin-top: 18px;
     }
 
     .secondary {
@@ -221,7 +274,7 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 12px;
       margin-top: 16px;
     }
@@ -273,17 +326,11 @@
       letter-spacing: 0.4px;
     }
 
-    .muted {
-      color: var(--muted);
-    }
+    .muted { color: var(--muted); }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
-    .button-row {
-      margin-top: 16px;
-    }
+    .button-row { margin-top: 16px; }
 
     .fine-print {
       margin-top: 18px;
@@ -292,18 +339,14 @@
       line-height: 1.6;
     }
 
-    @media (max-width: 860px) {
-      .status-grid {
-        grid-template-columns: 1fr;
-      }
-
+    @media (max-width: 980px) {
+      .drop-grid,
+      .status-grid,
       .summary-grid {
         grid-template-columns: 1fr;
       }
 
-      h1 {
-        font-size: 28px;
-      }
+      h1 { font-size: 28px; }
     }
   </style>
 </head>
@@ -318,19 +361,35 @@
     <div class="card">
       <h2>Run cleanup</h2>
       <p class="lead">
-        Upload your current Zeus inventory CSV and current KeyTrak inventory CSV.
-        This app removes all in-stock Zeus stock numbers from the KeyTrak list and emails you the leftover cleanup CSV.
+        Drag and drop your CSV files below, or click any box to browse.
+        The Items Out by User file is optional, but it helps attach checkout names and reasons to the outstanding keys.
       </p>
 
       <form id="uploadForm">
-        <div class="field">
-          <label for="zeus_file">Zeus inventory CSV</label>
-          <input id="zeus_file" name="zeus_file" type="file" accept=".csv" required>
-        </div>
+        <div class="drop-grid">
+          <div class="drop-zone" data-input="zeus_file">
+            <label class="drop-label" for="zeus_file">Zeus inventory CSV</label>
+            <input id="zeus_file" name="zeus_file" type="file" accept=".csv" required>
+            <div class="drop-title">Drop Zeus file here</div>
+            <div class="drop-copy">Required. Uses stock number from column 2.</div>
+            <div class="file-chip hidden" id="zeus_file_chip"></div>
+          </div>
 
-        <div class="field">
-          <label for="keytrak_file">KeyTrak inventory CSV</label>
-          <input id="keytrak_file" name="keytrak_file" type="file" accept=".csv" required>
+          <div class="drop-zone" data-input="keytrak_file">
+            <label class="drop-label" for="keytrak_file">KeyTrak current inventory CSV</label>
+            <input id="keytrak_file" name="keytrak_file" type="file" accept=".csv" required>
+            <div class="drop-title">Drop KeyTrak current file here</div>
+            <div class="drop-copy">Required. Uses stock number from column 1 and skips the first 2 rows.</div>
+            <div class="file-chip hidden" id="keytrak_file_chip"></div>
+          </div>
+
+          <div class="drop-zone" data-input="items_out_file">
+            <label class="drop-label" for="items_out_file">Items Out by User CSV</label>
+            <input id="items_out_file" name="items_out_file" type="file" accept=".csv">
+            <div class="drop-title">Drop Items Out file here</div>
+            <div class="drop-copy">Optional. Adds User ID, Reason, and Time Out to matching stock numbers.</div>
+            <div class="file-chip hidden" id="items_out_file_chip"></div>
+          </div>
         </div>
 
         <div class="field">
@@ -349,9 +408,9 @@
       </form>
 
       <div class="fine-print">
-        <div>• Zeus sample format: stock number in column 2.</div>
-        <div>• KeyTrak sample format: stock number in column 1, with first 2 rows skipped automatically.</div>
-        <div>• Preview below shows up to the first 25 leftover rows from the emailed result.</div>
+        <div>• Output columns: Stock #, Stock Type, Year, Make, Model, Exterior Color, User ID, Reason, Time Out.</div>
+        <div>• Matching is done by normalized Stock #.</div>
+        <div>• If a stock number appears more than once in Items Out by User, the most recent Time Out row wins.</div>
       </div>
     </div>
 
@@ -383,8 +442,16 @@
             <div id="keytrakCount" class="value">0</div>
           </div>
           <div class="summary-card">
-            <div class="label">Leftover result rows</div>
+            <div class="label">Items Out rows</div>
+            <div id="itemsOutCount" class="value">0</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Result rows</div>
             <div id="resultCount" class="value">0</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Matched rows</div>
+            <div id="matchedCount" class="value">0</div>
           </div>
         </div>
       </div>
@@ -411,7 +478,9 @@
 
     const zeusCount = document.getElementById('zeusCount');
     const keytrakCount = document.getElementById('keytrakCount');
+    const itemsOutCount = document.getElementById('itemsOutCount');
     const resultCount = document.getElementById('resultCount');
+    const matchedCount = document.getElementById('matchedCount');
     const previewTableWrap = document.getElementById('previewTableWrap');
 
     let activeTaskId = null;
@@ -445,7 +514,9 @@
       previewTableWrap.innerHTML = '';
       zeusCount.textContent = '0';
       keytrakCount.textContent = '0';
+      itemsOutCount.textContent = '0';
       resultCount.textContent = '0';
+      matchedCount.textContent = '0';
     }
 
     function escapeHtml(value) {
@@ -475,6 +546,57 @@
       previewSection.classList.remove('hidden');
     }
 
+    function updateDropZone(inputId) {
+      const input = document.getElementById(inputId);
+      const zone = document.querySelector(`.drop-zone[data-input="${inputId}"]`);
+      const chip = document.getElementById(`${inputId}_chip`);
+
+      if (input.files && input.files.length > 0) {
+        zone.classList.add('has-file');
+        chip.textContent = input.files[0].name;
+        chip.classList.remove('hidden');
+      } else {
+        zone.classList.remove('has-file');
+        chip.textContent = '';
+        chip.classList.add('hidden');
+      }
+    }
+
+    function attachDropZone(inputId) {
+      const input = document.getElementById(inputId);
+      const zone = document.querySelector(`.drop-zone[data-input="${inputId}"]`);
+
+      zone.addEventListener('click', () => input.click());
+
+      input.addEventListener('change', () => updateDropZone(inputId));
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        zone.addEventListener(eventName, event => {
+          event.preventDefault();
+          zone.classList.add('dragover');
+        });
+      });
+
+      ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+        zone.addEventListener(eventName, event => {
+          event.preventDefault();
+          zone.classList.remove('dragover');
+        });
+      });
+
+      zone.addEventListener('drop', event => {
+        const files = event.dataTransfer.files;
+        if (!files || !files.length) {
+          return;
+        }
+
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        input.files = dt.files;
+        updateDropZone(inputId);
+      });
+    }
+
     async function pollStatus(taskId) {
       try {
         const res = await fetch(`/status/${taskId}`);
@@ -492,7 +614,9 @@
         if (data.summary) {
           zeusCount.textContent = data.summary.zeus_rows ?? 0;
           keytrakCount.textContent = data.summary.keytrak_rows ?? 0;
+          itemsOutCount.textContent = data.summary.items_out_rows ?? 0;
           resultCount.textContent = data.summary.result_rows ?? 0;
+          matchedCount.textContent = data.summary.matched_rows ?? 0;
           summarySection.classList.remove('hidden');
         }
 
@@ -583,8 +707,15 @@
       }
 
       uploadForm.reset();
+      updateDropZone('zeus_file');
+      updateDropZone('keytrak_file');
+      updateDropZone('items_out_file');
       window.location.reload();
     });
+
+    attachDropZone('zeus_file');
+    attachDropZone('keytrak_file');
+    attachDropZone('items_out_file');
   </script>
 </body>
 </html>

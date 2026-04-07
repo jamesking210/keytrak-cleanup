@@ -28,7 +28,7 @@ LOG_DIR.mkdir(exist_ok=True)
 APP_TITLE = os.getenv("APP_TITLE", "KeyTrak Cleanup")
 APP_SUBTITLE = os.getenv(
     "APP_SUBTITLE",
-    "Upload Zeus and KeyTrak inventory files, compare them, preview the cleanup list, and email yourself a copy.",
+    "Upload Zeus, KeyTrak current inventory, and optional Items Out by User CSVs. Compare them, preview the cleanup list, and email yourself a copy.",
 )
 APP_PORT = int(os.getenv("APP_PORT", "8088"))
 RESULT_RETENTION_MINUTES = int(os.getenv("RESULT_RETENTION_MINUTES", "30"))
@@ -120,12 +120,28 @@ def allowed_csv(filename: str) -> bool:
     return filename.lower().endswith(".csv")
 
 
+def read_csv_with_fallback(path: Path, *, skiprows: int = 0) -> pd.DataFrame:
+    try:
+        return pd.read_csv(
+            path,
+            dtype=str,
+            keep_default_na=False,
+            skiprows=skiprows,
+            encoding="utf-8-sig",
+        )
+    except UnicodeDecodeError:
+        return pd.read_csv(
+            path,
+            dtype=str,
+            keep_default_na=False,
+            skiprows=skiprows,
+            encoding="latin-1",
+        )
+
+
 def read_zeus_csv(path: Path) -> pd.DataFrame:
     logger.info("Reading Zeus CSV: %s", path.name)
-    try:
-        df = pd.read_csv(path, dtype=str, keep_default_na=False, encoding="utf-8-sig")
-    except UnicodeDecodeError:
-        df = pd.read_csv(path, dtype=str, keep_default_na=False, encoding="latin-1")
+    df = read_csv_with_fallback(path)
 
     if len(df.columns) < 2:
         raise ProcessingError(
@@ -143,19 +159,12 @@ def read_zeus_csv(path: Path) -> pd.DataFrame:
 
 
 def read_keytrak_csv(path: Path) -> pd.DataFrame:
-    logger.info("Reading KeyTrak CSV: %s", path.name)
-    try:
-        df = pd.read_csv(
-            path, dtype=str, keep_default_na=False, skiprows=2, encoding="utf-8-sig"
-        )
-    except UnicodeDecodeError:
-        df = pd.read_csv(
-            path, dtype=str, keep_default_na=False, skiprows=2, encoding="latin-1"
-        )
+    logger.info("Reading KeyTrak current inventory CSV: %s", path.name)
+    df = read_csv_with_fallback(path, skiprows=2)
 
     if len(df.columns) < 1:
         raise ProcessingError(
-            "KeyTrak file does not have any columns. Expected stock number in column 1."
+            "KeyTrak current inventory file does not have any columns. Expected stock number in column 1."
         )
 
     stock_col = df.columns[0]
@@ -164,11 +173,45 @@ def read_keytrak_csv(path: Path) -> pd.DataFrame:
     df = df[df[stock_col] != ""]
     df = df.drop_duplicates(subset=[stock_col])
     df.attrs["stock_column"] = stock_col
-    logger.info("KeyTrak rows after cleanup: %s", len(df))
+    logger.info("KeyTrak current inventory rows after cleanup: %s", len(df))
     return df
 
 
-def build_result_dataframe(zeus_df: pd.DataFrame, keytrak_df: pd.DataFrame) -> pd.DataFrame:
+def read_items_out_csv(path: Path) -> pd.DataFrame:
+    logger.info("Reading KeyTrak Items Out by User CSV: %s", path.name)
+    df = read_csv_with_fallback(path, skiprows=2)
+
+    required_columns = {"Stock #", "User ID", "Reason", "Time Out"}
+    missing_columns = [column for column in required_columns if column not in df.columns]
+    if missing_columns:
+        raise ProcessingError(
+            "Items Out by User file is missing required columns: "
+            + ", ".join(missing_columns)
+        )
+
+    df = df.copy()
+    df["Stock #"] = df["Stock #"].apply(normalize_stock)
+    df = df[df["Stock #"] != ""]
+    df["__merge_stock"] = df["Stock #"]
+    df["__time_out_dt"] = pd.to_datetime(
+        df["Time Out"], errors="coerce", format="mixed"
+    )
+    df = df.sort_values(
+        by=["__time_out_dt", "__merge_stock"],
+        ascending=[False, True],
+        na_position="last",
+        kind="stable",
+    )
+    df = df.drop_duplicates(subset=["__merge_stock"], keep="first")
+    logger.info("Items Out by User rows after cleanup/dedupe: %s", len(df))
+    return df
+
+
+def build_result_dataframe(
+    zeus_df: pd.DataFrame,
+    keytrak_df: pd.DataFrame,
+    items_out_df: Optional[pd.DataFrame] = None,
+) -> pd.DataFrame:
     zeus_stock_col = zeus_df.attrs["stock_column"]
     keytrak_stock_col = keytrak_df.attrs["stock_column"]
 
@@ -178,7 +221,16 @@ def build_result_dataframe(zeus_df: pd.DataFrame, keytrak_df: pd.DataFrame) -> p
     if "Stock #" not in result_df.columns:
         result_df["Stock #"] = result_df[keytrak_stock_col]
 
-    result_df["Status"] = "Likely sold/stale"
+    result_df["Stock #"] = result_df["Stock #"].apply(normalize_stock)
+    result_df["__merge_stock"] = result_df["Stock #"]
+
+    if items_out_df is not None and not items_out_df.empty:
+        items_lookup = items_out_df[["__merge_stock", "User ID", "Reason", "Time Out"]].copy()
+        result_df = result_df.merge(items_lookup, on="__merge_stock", how="left")
+    else:
+        result_df["User ID"] = ""
+        result_df["Reason"] = ""
+        result_df["Time Out"] = ""
 
     desired_order = [
         "Stock #",
@@ -187,13 +239,13 @@ def build_result_dataframe(zeus_df: pd.DataFrame, keytrak_df: pd.DataFrame) -> p
         "Make",
         "Model",
         "Exterior Color",
-        "Status",
-        "Keytag ID",
+        "User ID",
+        "Reason",
+        "Time Out",
     ]
 
     existing_order = [col for col in desired_order if col in result_df.columns]
-    remaining_cols = [col for col in result_df.columns if col not in existing_order]
-    result_df = result_df[existing_order + remaining_cols]
+    result_df = result_df[existing_order]
 
     sort_col = "Stock #" if "Stock #" in result_df.columns else keytrak_stock_col
     result_df = result_df.sort_values(by=[sort_col], kind="stable").reset_index(drop=True)
@@ -216,7 +268,9 @@ def write_result_csv(result_df: pd.DataFrame, task_dir: Path, task_id: str) -> P
     return path
 
 
-def send_email_with_attachment(recipient: str, result_path: Path, summary: Dict[str, int]) -> None:
+def send_email_with_attachment(
+    recipient: str, result_path: Path, summary: Dict[str, int]
+) -> None:
     if not SMTP_ENABLED:
         raise ProcessingError(
             "SMTP is disabled. This app is email-only, so set SMTP_ENABLED=true and fill in your mail settings."
@@ -224,7 +278,9 @@ def send_email_with_attachment(recipient: str, result_path: Path, summary: Dict[
     if not recipient:
         raise ProcessingError("No email recipient provided.")
     if not SMTP_HOST or not SMTP_FROM:
-        raise ProcessingError("SMTP settings are incomplete. SMTP_HOST and SMTP_FROM are required.")
+        raise ProcessingError(
+            "SMTP settings are incomplete. SMTP_HOST and SMTP_FROM are required."
+        )
 
     logger.info("Preparing email to %s with attachment %s", recipient, result_path.name)
 
@@ -232,8 +288,10 @@ def send_email_with_attachment(recipient: str, result_path: Path, summary: Dict[
     body = (
         f"Your KeyTrak cleanup run is complete.\n\n"
         f"Zeus rows: {summary.get('zeus_rows', 0)}\n"
-        f"KeyTrak rows: {summary.get('keytrak_rows', 0)}\n"
-        f"Likely sold/stale units still in KeyTrak: {summary.get('result_rows', 0)}\n\n"
+        f"KeyTrak current inventory rows: {summary.get('keytrak_rows', 0)}\n"
+        f"Items Out by User rows: {summary.get('items_out_rows', 0)}\n"
+        f"Likely sold/stale units still in KeyTrak: {summary.get('result_rows', 0)}\n"
+        f"Matched to Items Out by User: {summary.get('matched_rows', 0)}\n\n"
         f"The CSV is attached."
     )
 
@@ -244,7 +302,9 @@ def send_email_with_attachment(recipient: str, result_path: Path, summary: Dict[
     msg.set_content(body)
 
     with open(result_path, "rb") as f:
-        msg.add_attachment(f.read(), maintype="text", subtype="csv", filename=result_path.name)
+        msg.add_attachment(
+            f.read(), maintype="text", subtype="csv", filename=result_path.name
+        )
 
     if SMTP_USE_SSL:
         logger.info("Sending email using SMTP SSL to %s:%s", SMTP_HOST, SMTP_PORT)
@@ -253,7 +313,12 @@ def send_email_with_attachment(recipient: str, result_path: Path, summary: Dict[
                 server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.send_message(msg)
     else:
-        logger.info("Sending email using SMTP to %s:%s | TLS=%s", SMTP_HOST, SMTP_PORT, SMTP_USE_TLS)
+        logger.info(
+            "Sending email using SMTP to %s:%s | TLS=%s",
+            SMTP_HOST,
+            SMTP_PORT,
+            SMTP_USE_TLS,
+        )
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
             if SMTP_USE_TLS:
                 server.starttls()
@@ -313,7 +378,13 @@ def cleanup_old_tasks(force_all_completed: bool = False) -> None:
         logger.info("Removed stale completed tasks: %s", ", ".join(stale_ids))
 
 
-def process_files(task_id: str, zeus_path: Path, keytrak_path: Path, recipient: str) -> None:
+def process_files(
+    task_id: str,
+    zeus_path: Path,
+    keytrak_path: Path,
+    items_out_path: Optional[Path],
+    recipient: str,
+) -> None:
     task_dir = TMP_DIR / task_id
     logger.info("Task %s started", task_id)
 
@@ -321,18 +392,42 @@ def process_files(task_id: str, zeus_path: Path, keytrak_path: Path, recipient: 
         set_task(task_id, status="processing", message="Reading Zeus inventory file...")
         zeus_df = read_zeus_csv(zeus_path)
 
-        set_task(task_id, status="processing", message="Reading KeyTrak inventory file...")
+        set_task(
+            task_id,
+            status="processing",
+            message="Reading KeyTrak current inventory file...",
+        )
         keytrak_df = read_keytrak_csv(keytrak_path)
 
-        set_task(task_id, status="processing", message="Comparing KeyTrak against Zeus truth source...")
-        result_df = build_result_dataframe(zeus_df, keytrak_df)
+        items_out_df: Optional[pd.DataFrame] = None
+        items_out_rows = 0
+        if items_out_path is not None:
+            set_task(
+                task_id,
+                status="processing",
+                message="Reading Items Out by User file...",
+            )
+            items_out_df = read_items_out_csv(items_out_path)
+            items_out_rows = int(len(items_out_df))
+        else:
+            logger.info("No Items Out by User file supplied for task %s", task_id)
+
+        set_task(
+            task_id,
+            status="processing",
+            message="Comparing KeyTrak against Zeus and matching checkout details...",
+        )
+        result_df = build_result_dataframe(zeus_df, keytrak_df, items_out_df)
 
         result_path = write_result_csv(result_df, task_dir, task_id)
         preview_rows = result_df.head(25).fillna("").to_dict(orient="records")
+        matched_rows = int((result_df.get("User ID", pd.Series(dtype=str)).fillna("") != "").sum())
         summary = {
             "zeus_rows": int(len(zeus_df)),
             "keytrak_rows": int(len(keytrak_df)),
+            "items_out_rows": items_out_rows,
             "result_rows": int(len(result_df)),
+            "matched_rows": matched_rows,
         }
 
         set_task(
@@ -344,12 +439,17 @@ def process_files(task_id: str, zeus_path: Path, keytrak_path: Path, recipient: 
             result_path=result_path,
         )
 
-        for file_path in [zeus_path, keytrak_path]:
+        source_files = [zeus_path, keytrak_path]
+        if items_out_path is not None:
+            source_files.append(items_out_path)
+
+        for file_path in source_files:
             try:
                 file_path.unlink(missing_ok=True)
             except TypeError:
                 if file_path.exists():
                     file_path.unlink()
+
         logger.info("Uploaded source files deleted for task %s", task_id)
 
         send_email_with_attachment(recipient, result_path, summary)
@@ -382,7 +482,6 @@ def index():
         app_title=APP_TITLE,
         app_subtitle=APP_SUBTITLE,
         smtp_default_to=SMTP_TO,
-        smtp_enabled=SMTP_ENABLED,
     )
 
 
@@ -392,6 +491,7 @@ def upload():
 
     zeus_file = request.files.get("zeus_file")
     keytrak_file = request.files.get("keytrak_file")
+    items_out_file = request.files.get("items_out_file")
     recipient = (request.form.get("email_to") or SMTP_TO).strip()
 
     if not SMTP_ENABLED:
@@ -407,16 +507,22 @@ def upload():
         return jsonify({"error": "Please choose the Zeus CSV file."}), 400
 
     if not keytrak_file or not keytrak_file.filename:
-        logger.warning("Upload rejected: missing KeyTrak file")
-        return jsonify({"error": "Please choose the KeyTrak CSV file."}), 400
+        logger.warning("Upload rejected: missing KeyTrak current inventory file")
+        return jsonify({"error": "Please choose the KeyTrak current inventory CSV file."}), 400
 
     if not allowed_csv(zeus_file.filename) or not allowed_csv(keytrak_file.filename):
-        logger.warning("Upload rejected: non-CSV file uploaded")
-        return jsonify({"error": "Both files must be CSV files."}), 400
+        logger.warning("Upload rejected: non-CSV file uploaded for required inputs")
+        return jsonify({"error": "Zeus and KeyTrak current inventory files must both be CSV files."}), 400
+
+    if items_out_file and items_out_file.filename and not allowed_csv(items_out_file.filename):
+        logger.warning("Upload rejected: non-CSV Items Out by User file uploaded")
+        return jsonify({"error": "Items Out by User file must be a CSV file."}), 400
 
     if not recipient:
         logger.warning("Upload rejected: no recipient provided")
-        return jsonify({"error": "Please provide an email address or set SMTP_TO in the environment."}), 400
+        return jsonify(
+            {"error": "Please provide an email address or set SMTP_TO in the environment."}
+        ), 400
 
     task_id = uuid.uuid4().hex
     task_dir = TMP_DIR / task_id
@@ -429,21 +535,33 @@ def upload():
     zeus_file.save(zeus_path)
     keytrak_file.save(keytrak_path)
 
+    items_out_path: Optional[Path] = None
+    items_out_filename = ""
+    if items_out_file and items_out_file.filename:
+        items_out_filename = secure_filename(items_out_file.filename)
+        items_out_path = task_dir / items_out_filename
+        items_out_file.save(items_out_path)
+
     logger.info(
-        "Upload accepted. Task=%s | Zeus=%s | KeyTrak=%s | Recipient=%s",
+        "Upload accepted. Task=%s | Zeus=%s | KeyTrak=%s | ItemsOut=%s | Recipient=%s",
         task_id,
         zeus_filename,
         keytrak_filename,
+        items_out_filename or "(none)",
         recipient,
     )
 
-    task = Task(id=task_id, created_at=datetime.now(), message="Files uploaded. Starting processor...")
+    task = Task(
+        id=task_id,
+        created_at=datetime.now(),
+        message="Files uploaded. Starting processor...",
+    )
     with TASKS_LOCK:
         TASKS[task_id] = task
 
     thread = threading.Thread(
         target=process_files,
-        args=(task_id, zeus_path, keytrak_path, recipient),
+        args=(task_id, zeus_path, keytrak_path, items_out_path, recipient),
         daemon=True,
         name=f"task-{task_id[:8]}",
     )
